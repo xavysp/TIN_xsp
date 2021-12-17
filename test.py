@@ -1,12 +1,43 @@
 import torch
-from model import TIN
-import os
+import os, platform
 from os.path import join
 import numpy as np
 from PIL import Image
-import scipy.io as io
 import cv2
+
+import argparse
+import scipy.io as io
 import time
+from model import TIN
+
+# ------------------ TIN Setting data -----------------------
+IS_LINUX = True if platform.system()=="Linux" else False
+dataset_base_dir = '/opt/dataset'if IS_LINUX else 'C:/Users/xavysp/dataset'
+parser = argparse.ArgumentParser(description='PyTorch Pixel Difference Convolutional Networks')
+
+parser.add_argument('--savedir', type=str, default='results',
+        help='path to save result and checkpoint')
+parser.add_argument('--datadir', type=str, default=dataset_base_dir,
+        help='dir to the dataset')
+parser.add_argument('--test_data', type=str, default='BIPED',
+        help='test data')
+parser.add_argument('--train_data', type=str, default='BIPED',
+        help='data settings for BSDS, Multicue and NYUD datasets')
+parser.add_argument('--train_list', type=str, default='train_pair.lst',
+        help='training data list')
+parser.add_argument('--test_list', type=str, default='test_pair.lst',
+        help='testing data list')
+
+parser.add_argument('--model', type=str, default='tin',
+        help='model to train the dataset') # check later
+parser.add_argument('--eta', type=float, default=0.3,
+        help='threshold to determine the ground truth (the eta parameter in the paper)')
+parser.add_argument('--print-freq', type=int, default=10,
+        help='print frequency')
+
+
+args = parser.parse_args()
+
 
 test_img = 'img/mri_brain.jpg'
 ## READ IMAGE

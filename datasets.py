@@ -1,4 +1,6 @@
 # borrowed from https://github.com/meteorshowers/RCF-pytorch
+import os
+import json
 
 from torch.utils import data
 from os.path import join
@@ -14,20 +16,48 @@ def prepare_image_cv2(im):
 
 
 class Data_Loader(data.Dataset):
-    def __init__(self, root='../DATA/data', split='train', scale=None):
-        self.root = root
+    def __init__(self, split='train', scale=None, arg=None):
+        self.root = join(arg.datadir,arg.train_data)
         self.split = split
         self.scale = scale
-        self.bsds_root = join(root, 'HED-BSDS')
         if self.split == 'train':
-            self.filelist = join(self.root, 'bsds_pascal_train_pair.lst')
+            data_name = arg.train_data
+            list_file = join(self.root, arg.train_list)
         elif self.split == 'test':
+            data_name = arg.test_data
             #self.filelist = join(self.bsds_root, 'image-test.lst')
-            self.filelist = join(self.bsds_root, 'test_pair.lst')
+            if not arg.test_data=="CLASSIC":
+                list_file = join(self.bsds_root, arg.test_list)
         else:
             raise ValueError("Invalid split type!")
-        with open(self.filelist, 'r') as f:
-            self.filelist = f.readlines()
+        if data_name == "CLASSIC":
+            # please in your main project dir create a  "data" dir, then paste
+            # the images you need in edge-maps
+            self.filelist = os.listdir("data")
+        else:
+            self.filelist =[]
+            if data_name in ["BIPED", 'BRIND','MDBD']:
+                with open(list_file) as f:
+                    files = json.load(f)
+                for pair in files:
+                    tmp_img = pair[0]
+                    tmp_gt = pair[1]
+                    self.filelist.append(
+                        (os.path.join(self.root, tmp_img),
+                         os.path.join(self.root, tmp_gt),))
+            else:
+
+                with open(list_file, 'r') as f:
+                    files = f.readlines()
+                files = [line.strip() for line in files]
+
+                pairs = [line.split() for line in files]
+                for pair in pairs:
+                    tmp_img = pair[0]
+                    tmp_gt = pair[1]
+                    self.filelist.append(
+                        (os.path.join(self.root, tmp_img),
+                         os.path.join(self.root, tmp_gt),))
 
     def __len__(self):
         return len(self.filelist)
