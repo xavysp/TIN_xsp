@@ -17,7 +17,8 @@ def prepare_image_cv2(im):
 
 class Data_Loader(data.Dataset):
     def __init__(self, split='train', scale=None, arg=None):
-        self.root = join(arg.datadir,arg.train_data)
+        self.root = join(arg.datadir,arg.train_data) if split=='train' else \
+            join(arg.datadir, arg.test_data)
         self.split = split
         self.scale = scale
         if self.split == 'train':
@@ -27,7 +28,7 @@ class Data_Loader(data.Dataset):
             data_name = arg.test_data
             #self.filelist = join(self.bsds_root, 'image-test.lst')
             if not arg.test_data=="CLASSIC":
-                list_file = join(self.bsds_root, arg.test_list)
+                list_file = join(self.root, arg.test_list)
         else:
             raise ValueError("Invalid split type!")
         if data_name == "CLASSIC":
@@ -82,11 +83,12 @@ class Data_Loader(data.Dataset):
             img = prepare_image_cv2(img)
             return img, lb
         else:
-            img_file, lb_file = self.filelist[index].split()
+            img_file, lb_file = self.filelist[index]
             data = []
             data_name = []
 
-            original_img = np.array(cv2.imread(join(self.bsds_root, img_file)), dtype=np.float32)
+            original_img = np.array(cv2.imread(join(self.root, img_file)), dtype=np.float32)
+            img_shape = original_img.shape
             img = cv2.resize(original_img, dsize=(256, 256), interpolation=cv2.INTER_LINEAR)
 
             if self.scale is not None:
@@ -98,7 +100,7 @@ class Data_Loader(data.Dataset):
 
             img = prepare_image_cv2(img)
 
-            lb = np.array(Image.open(join(self.bsds_root, lb_file)), dtype=np.float32)
+            lb = np.array(Image.open(join(self.root, lb_file)), dtype=np.float32)
 
             if lb.ndim == 3:
                 lb = np.squeeze(lb[:, :, 0])
@@ -109,5 +111,5 @@ class Data_Loader(data.Dataset):
             lb[np.logical_and(lb > 0, lb < 64)] = 2
             lb[lb >= 64] = 1
 
-            return img, lb, img_file
+            return dict(images=img, labels=lb, file_names=img_file, image_shape=img_shape)
 

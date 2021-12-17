@@ -81,6 +81,8 @@ parser.add_argument('--eta', type=float, default=0.3,
         help='threshold to determine the ground truth (the eta parameter in the paper)')
 parser.add_argument('--print-freq', type=int, default=10,
         help='print frequency')
+parser.add_argument('--chkpnt', type=str, default='TIN2.pth',
+        help='name of checkpoint') # check later
 
 
 args = parser.parse_args()
