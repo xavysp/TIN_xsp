@@ -72,7 +72,7 @@ class Data_Loader(data.Dataset):
             if lb.ndim == 3:
                 lb = np.squeeze(lb[:, :, 0])
             assert lb.ndim == 2
-            lb = cv2.resize(lb, (256, 256), interpolation=cv2.INTER_LINEAR)
+            lb = cv2.resize(lb, (352, 352), interpolation=cv2.INTER_LINEAR)
 
             lb = lb[np.newaxis, :, :]
             lb[lb == 0] = 0

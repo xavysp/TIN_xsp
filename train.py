@@ -42,6 +42,10 @@ def save_ckpt(model, name, chkpnt_dir=None):
 balance cross entropy 
 """
 def balanced_cross_entropy_loss(prediction, label):
+
+    if not prediction.shape==label.shape:
+        a = torch.nn.UpsamplingBilinear2d([label.size()[2], label.size()[3]])
+        prediction = a(prediction)
     label = label.long()
     mask = label.float()
     num_positive = torch.sum((mask == 1).float()).float()
@@ -121,8 +125,7 @@ def main(args):
     total_epoch = 120
     #####
     each_epoch_iter = len(train_loader)
-    total_iter = total_epoch * each_epoch_iter
-    # print(each_epoch_iter)
+    total_iter = each_epoch_iter//batch_size
     #####
     print_cnt = 10
     ckpt_cnt = 500
@@ -166,15 +169,15 @@ def main(args):
             avg_loss += float(total_loss)
             if cnt % print_cnt == 0:
                 writer.add_scalar('Loss/train', avg_loss / print_cnt, cnt)
-                print('[{}/{}] loss:{} avg_loss: {}'.format(cnt, total_iter, float(total_loss), avg_loss / print_cnt),
+                print('[{}/{}] loss:{} avg_loss: {}'.format(i, total_iter, float(total_loss), avg_loss / print_cnt),
                       flush=True)
                 avg_loss = 0
                 save_img_progress(outs, 'iter-{}'.format(cnt))
 
-            if cnt % ckpt_cnt == 0:
-                save_ckpt(
-                    model, 'weight-{}-iter-{}'.format(init_lr, cnt),
-                          chkpnt_dir=checkpoint_dir)
+        # if cnt % ckpt_cnt == 0:
+        save_ckpt(
+            model, 'weight-{}-iter-{}'.format(init_lr, epoch+1),
+                  chkpnt_dir=checkpoint_dir)
 
     save_ckpt(model, 'final-model')
 
