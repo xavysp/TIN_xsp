@@ -59,6 +59,27 @@ def balanced_cross_entropy_loss(prediction, label):
         prediction.float(), label.float(), weight=mask, reduce=False)
     return torch.sum(cost) / (num_negative + num_positive)
 
+def batch_bce_loss(prediction, label):
+
+    if not prediction.shape==label.shape:
+        a = torch.nn.UpsamplingBilinear2d([label.size()[2], label.size()[3]])
+        prediction = a(prediction)
+    label = label.long()
+    mask = label.float()
+    weight = torch.zeros_like(mask)
+    num_positive = torch.sum((mask == 1).float(),dim=[1,2,3], keepdim=True).float()
+    num_negative = torch.sum((mask == 0).float(),dim=[1,2,3], keepdim=True).float()
+
+    weight.masked_scatter_(label==1.,
+                           torch.ones_like(label)*(1.0 * num_negative / (num_positive + num_negative)))
+    weight.masked_scatter_(label==0.,
+        torch.ones_like(label)*(1.1 * num_positive / (num_positive + num_negative)))
+    weight.masked_scatter_(label == 2,torch.ones_like(label) *0.)
+
+    cost = torch.nn.functional.binary_cross_entropy(
+        prediction.float(), label.float(), weight=mask, reduce=False)
+    return torch.sum(cost) / (num_negative + num_positive)
+
 # ------------------ TIN Setting data -----------------------
 IS_LINUX = True if platform.system()=="Linux" else False
 dataset_base_dir = '/opt/dataset'if IS_LINUX else 'C:/Users/xavysp/dataset'
@@ -95,7 +116,7 @@ def main(args):
     data loader
     """
 
-    batch_size = 1
+    batch_size = 4
     train_dataset = Data_Loader(split="train", arg=args)
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size,
@@ -162,7 +183,8 @@ def main(args):
 
             for each in outs:
                 total_loss += balanced_cross_entropy_loss(each, label)/batch_size
-
+                # total_loss += batch_bce_loss(each, label)/batch_size
+            # total_loss=total_loss.sum()# just for batch>1
             optim.zero_grad()
             total_loss.backward()
             optim.step()

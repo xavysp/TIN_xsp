@@ -23,7 +23,7 @@ parser.add_argument('--datadir', type=str, default=dataset_base_dir,
         help='dir to the dataset')
 parser.add_argument('--test_data', type=str, default='BIPED',
         help='test data')
-parser.add_argument('--train_data', type=str, default='BSDS',
+parser.add_argument('--train_data', type=str, default='BIPED',
         help='data settings for BSDS, Multicue and NYUD datasets')
 parser.add_argument('--train_list', type=str, default='train_pair.lst',
         help='training data list')
@@ -35,7 +35,7 @@ parser.add_argument('--model', type=str, default='tin',
 parser.add_argument('--eta', type=float, default=0.3,
         help='threshold to determine the ground truth (the eta parameter in the paper)')
 
-parser.add_argument('--chckpnt', type=str, default='TIN2.pth',
+parser.add_argument('--chckpnt', type=str, default='weight-3.pth',
         help='name of checkpoint') # check later
 
 

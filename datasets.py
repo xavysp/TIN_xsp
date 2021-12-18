@@ -89,7 +89,8 @@ class Data_Loader(data.Dataset):
 
             original_img = np.array(cv2.imread(join(self.root, img_file)), dtype=np.float32)
             img_shape = original_img.shape
-            img = cv2.resize(original_img, dsize=(256, 256), interpolation=cv2.INTER_LINEAR)
+            # img = cv2.resize(original_img, dsize=(1280, 720)) # BIPED/MDBD
+            img = cv2.resize(original_img, dsize=(480, 480)) # BRIED
 
             if self.scale is not None:
                 for scl in self.scale:
