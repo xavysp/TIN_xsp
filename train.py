@@ -72,7 +72,7 @@ parser.add_argument('--test_data', type=str, default='BIPED',
         help='test data')
 parser.add_argument('--train_data', type=str, default='BIPED',
         help='data settings for BSDS, Multicue and NYUD datasets')
-parser.add_argument('--train_list', type=str, default='train_pair.lst',
+parser.add_argument('--train_list', type=str, default='train_pair.txt',
         help='training data list')
 parser.add_argument('--test_list', type=str, default='test_pair.lst',
         help='testing data list')
@@ -113,6 +113,7 @@ def main(args):
     model = TIN(False,2).to(device)
     #conv1_w = model.conv1_1.weight.data
     init_model(model)
+    model= model.to(device)
     #conv1_ww = model.conv1_1.weight.data
     #print(conv1_w==conv1_ww)
     # model.cuda()
@@ -172,7 +173,8 @@ def main(args):
                 print('[{}/{}] loss:{} avg_loss: {}'.format(i, total_iter, float(total_loss), avg_loss / print_cnt),
                       flush=True)
                 avg_loss = 0
-                save_img_progress(outs, 'iter-{}'.format(cnt))
+                if cnt%500==0:
+                    save_img_progress(outs, 'iter-{}'.format(cnt))
 
         # if cnt % ckpt_cnt == 0:
         save_ckpt(

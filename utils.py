@@ -18,7 +18,7 @@ def plot_img(dat,rows,columns,fname):
     plt.savefig(fname, bbox_inches='tight')
 
 
-def init_model(model):
+def init_model(model, device='cpu'):
     shape = (3, 3)
     a = np.array([custom_kernel(shape,0),
                  custom_kernel(shape, 22.5),
