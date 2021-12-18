@@ -71,14 +71,15 @@ def batch_bce_loss(prediction, label):
     num_negative = torch.sum((mask == 0).float(),dim=[1,2,3], keepdim=True).float()
 
     weight.masked_scatter_(label==1.,
-                           torch.ones_like(label)*(1.0 * num_negative / (num_positive + num_negative)))
+                           torch.ones_like(label)*(1.0 * num_negative) / (num_positive + num_negative))
     weight.masked_scatter_(label==0.,
-        torch.ones_like(label)*(1.1 * num_positive / (num_positive + num_negative)))
+        torch.ones_like(label)*(1.1 * num_positive) / (num_positive + num_negative))
     weight.masked_scatter_(label == 2,torch.ones_like(label) *0.)
 
     cost = torch.nn.functional.binary_cross_entropy(
         prediction.float(), label.float(), weight=mask, reduce=False)
     return torch.sum(cost) / (num_negative + num_positive)
+    # return torch.sum(cost) / (num_negative + num_positive)
 
 # ------------------ TIN Setting data -----------------------
 IS_LINUX = True if platform.system()=="Linux" else False
@@ -149,6 +150,9 @@ def main(args):
     each_epoch_iter = len(train_loader)
     total_iter = each_epoch_iter//batch_size
     #####
+    print('Total inter in 1 batch> ',each_epoch_iter)
+    print('batch',batch_size)
+    print('Iteration with batch >1', total_iter)
     print_cnt = 10
     ckpt_cnt = 500
     cnt = 0
@@ -184,6 +188,7 @@ def main(args):
             for each in outs:
                 total_loss += balanced_cross_entropy_loss(each, label)/batch_size
                 # total_loss += batch_bce_loss(each, label)/batch_size
+                # print("Noo")
             # total_loss=total_loss.sum()# just for batch>1
             optim.zero_grad()
             total_loss.backward()
