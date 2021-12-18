@@ -34,11 +34,9 @@ def save_img_progress(results, filename):
         results_all[i, 0, :, :] = results[i][0]
     torchvision.utils.save_image(1 - results_all, join('img_log', "%s.jpg" % filename))
 
-def save_ckpt(model, name):
+def save_ckpt(model, name, chkpnt_dir=None):
     print('saving checkpoint ... {}'.format(name), flush=True)
-    if not os.path.isdir('checkpoints'):
-        os.mkdir('checkpoints')
-    torch.save(model.state_dict(), os.path.join('checkpoints', '{}.pth'.format(name)))
+    torch.save(model.state_dict(), os.path.join(chkpnt_dir, '{}.pth'.format(name)))
 
 """
 balance cross entropy 
@@ -87,84 +85,98 @@ parser.add_argument('--chkpnt', type=str, default='TIN2.pth',
 
 args = parser.parse_args()
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-"""
-data loader
-"""
+def main(args):
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    """
+    data loader
+    """
 
-batch_size = 1
-train_dataset = Data_Loader(split="train", arg=args)
-train_loader = DataLoader(
-    train_dataset, batch_size=batch_size,
-    num_workers=8, drop_last=True, shuffle=True)
+    batch_size = 1
+    train_dataset = Data_Loader(split="train", arg=args)
+    train_loader = DataLoader(
+        train_dataset, batch_size=batch_size,
+        num_workers=8, drop_last=True, shuffle=True)
 
-log = Logger('log.txt')
-sys.stdout = log
+    log = Logger('log.txt')
+    sys.stdout = log
 
-"""
-create model
-"""
-model = TIN(False,2)
-#conv1_w = model.conv1_1.weight.data
-init_model(model)
-#conv1_ww = model.conv1_1.weight.data
-#print(conv1_w==conv1_ww)
-model.cuda()
-model.train()
+    """
+    create model
+    """
+    device = torch.device('cpu' if torch.cuda.device_count() == 0
+                          else 'cuda')
 
-"""
-PARAMS
-"""
-init_lr = 1e-2
-total_epoch = 120
-#####
-each_epoch_iter = len(train_loader)
-total_iter = total_epoch * each_epoch_iter
-# print(each_epoch_iter)
-#####
-print_cnt = 10
-ckpt_cnt = 500
-cnt = 0
-avg_loss = 0.
+    model = TIN(False,2).to(device)
+    #conv1_w = model.conv1_1.weight.data
+    init_model(model)
+    #conv1_ww = model.conv1_1.weight.data
+    #print(conv1_w==conv1_ww)
+    # model.cuda()
+    model.train()
 
-writer = SummaryWriter()
-optim = make_optimizer(model, init_lr)
+    """
+    PARAMS
+    """
+    init_lr = 1e-2
+    total_epoch = 120
+    #####
+    each_epoch_iter = len(train_loader)
+    total_iter = total_epoch * each_epoch_iter
+    # print(each_epoch_iter)
+    #####
+    print_cnt = 10
+    ckpt_cnt = 500
+    cnt = 0
+    avg_loss = 0.
 
-print('*' * 60)
-print('train images in all are %d ' % each_epoch_iter)
-pytorch_total_params = sum(p.numel() for p in model.parameters())
-print('total params in all are %d ' % pytorch_total_params)
-print('*' * 60)
+    writer = SummaryWriter()
+    optim = make_optimizer(model, init_lr)
 
-"""
-START TRAINING
-"""
-for epoch in range(total_epoch):
-    for i, (image, label) in enumerate(train_loader):
-        cnt += 1
-        if epoch % 10 == 0:
-            adjust_learning_rate(optim, epoch)
+    print('*' * 60)
+    print('train images in all are %d ' % each_epoch_iter)
+    pytorch_total_params = sum(p.numel() for p in model.parameters())
+    print('total params in all are %d ' % pytorch_total_params)
+    print('*' * 60)
 
-        image, label = image.cuda(), label.cuda()
-        outs = model(image)
-        total_loss = 0
+    checkpoint_dir = os.path.join("weights", args.train_data)
+    os.makedirs(checkpoint_dir, exist_ok=True)
 
-        for each in outs:
-            total_loss += balanced_cross_entropy_loss(each, label)/batch_size
+    """
+    START TRAINING
+    """
+    for epoch in range(total_epoch):
+        for i, (image, label) in enumerate(train_loader):
+            cnt += 1
+            if epoch % 10 == 0:
+                adjust_learning_rate(optim, epoch)
+            if device.type=='cpu':
+                image, label = image, label
+            else:
+                image, label = image.cuda(), label.cuda()
+            outs = model(image)
+            total_loss = 0
 
-        optim.zero_grad()
-        total_loss.backward()
-        optim.step()
+            for each in outs:
+                total_loss += balanced_cross_entropy_loss(each, label)/batch_size
 
-        avg_loss += float(total_loss)
-        if cnt % print_cnt == 0:
-            writer.add_scalar('Loss/train', avg_loss / print_cnt, cnt)
-            print('[{}/{}] loss:{} avg_loss: {}'.format(cnt, total_iter, float(total_loss), avg_loss / print_cnt),
-                  flush=True)
-            avg_loss = 0
-            save_img_progress(outs, 'iter-{}'.format(cnt))
+            optim.zero_grad()
+            total_loss.backward()
+            optim.step()
 
-        if cnt % ckpt_cnt == 0:
-            save_ckpt(model, 'weight-{}-iter-{}'.format(init_lr, cnt))
+            avg_loss += float(total_loss)
+            if cnt % print_cnt == 0:
+                writer.add_scalar('Loss/train', avg_loss / print_cnt, cnt)
+                print('[{}/{}] loss:{} avg_loss: {}'.format(cnt, total_iter, float(total_loss), avg_loss / print_cnt),
+                      flush=True)
+                avg_loss = 0
+                save_img_progress(outs, 'iter-{}'.format(cnt))
 
-save_ckpt(model, 'final-model')
+            if cnt % ckpt_cnt == 0:
+                save_ckpt(
+                    model, 'weight-{}-iter-{}'.format(init_lr, cnt),
+                          chkpnt_dir=checkpoint_dir)
+
+    save_ckpt(model, 'final-model')
+
+if __name__ == '__main__':
+    main(args=args)

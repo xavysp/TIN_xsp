@@ -66,7 +66,7 @@ class Data_Loader(data.Dataset):
     def __getitem__(self, index):
         r = np.random.randint(0, 100000)
         if self.split == "train":
-            img_file, lb_file = self.filelist[index].split()
+            img_file, lb_file = self.filelist[index]
             lb = np.array(Image.open(join(self.root, lb_file)), dtype=np.float32)
 
             if lb.ndim == 3:
