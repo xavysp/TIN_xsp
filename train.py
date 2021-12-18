@@ -117,7 +117,7 @@ def main(args):
     data loader
     """
 
-    batch_size = 4
+    batch_size = 10
     train_dataset = Data_Loader(split="train", arg=args)
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size,
@@ -148,11 +148,13 @@ def main(args):
     total_epoch = 120
     #####
     each_epoch_iter = len(train_loader)
-    total_iter = each_epoch_iter//batch_size
+    total_iter = len(train_loader)# each_epoch_iter//batch_size
     #####
     print('Total inter in 1 batch> ',each_epoch_iter)
     print('batch',batch_size)
     print('Iteration with batch >1', total_iter)
+
+
     print_cnt = 10
     ckpt_cnt = 500
     cnt = 0
