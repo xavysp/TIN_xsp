@@ -195,10 +195,10 @@ def main(args):
             total_loss = 0
 
             for each in outs:
-                # total_loss += balanced_cross_entropy_loss(each, label)/batch_size
-                total_loss += batch_bce_loss(each, label)/batch_size
+                total_loss += balanced_cross_entropy_loss(each, label)/batch_size
+                # total_loss += batch_bce_loss(each, label)/batch_size
                 # print("Noo")
-            total_loss=total_loss.sum()# just for batch>1
+            # total_loss=total_loss.sum()# just for batch>1
             optim.zero_grad()
             total_loss.backward()
             optim.step()
