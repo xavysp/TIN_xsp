@@ -19,6 +19,7 @@ def adjust_learning_rate(optimizer, epoch):
     lr = 1e-2 * (0.1 ** (epoch // 10))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
+    return  lr
 
 def make_optimizer(model, lr):
     optim = torch.optim.SGD(params=model.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4)
@@ -70,9 +71,9 @@ def batch_bce_loss(prediction, label):
     num_positive = torch.sum((mask == 1).float(),dim=[1,2,3], keepdim=True).float()
     num_negative = torch.sum((mask == 0).float(),dim=[1,2,3], keepdim=True).float()
 
-    weight.masked_scatter_(label==1.,
+    weight.masked_scatter_(label==1,
                            torch.ones_like(label)*(1.0 * num_negative) / (num_positive + num_negative))
-    weight.masked_scatter_(label==0.,
+    weight.masked_scatter_(label==0,
         torch.ones_like(label)*(1.1 * num_positive) / (num_positive + num_negative))
     weight.masked_scatter_(label == 2,torch.ones_like(label) *0.)
 
@@ -179,7 +180,7 @@ def main(args):
         for i, (image, label) in enumerate(train_loader):
             cnt += 1
             if epoch % 10 == 0:
-                adjust_learning_rate(optim, epoch)
+                cur_lr= adjust_learning_rate(optim, epoch)
             if device.type=='cpu':
                 image, label = image, label
             else:
@@ -188,10 +189,10 @@ def main(args):
             total_loss = 0
 
             for each in outs:
-                total_loss += balanced_cross_entropy_loss(each, label)/batch_size
-                # total_loss += batch_bce_loss(each, label)/batch_size
+                # total_loss += balanced_cross_entropy_loss(each, label)/batch_size
+                total_loss += batch_bce_loss(each, label)/batch_size
                 # print("Noo")
-            # total_loss=total_loss.sum()# just for batch>1
+            total_loss=total_loss.sum()# just for batch>1
             optim.zero_grad()
             total_loss.backward()
             optim.step()
@@ -202,7 +203,7 @@ def main(args):
                 print('[{}/{}] loss:{} avg_loss: {}'.format(i, total_iter, float(total_loss), avg_loss / print_cnt),
                       flush=True)
                 avg_loss = 0
-                if cnt%500==0:
+                if cnt%100==0:
                     save_img_progress(outs, 'iter-{}'.format(cnt))
 
         # if cnt % ckpt_cnt == 0:

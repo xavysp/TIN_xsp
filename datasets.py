@@ -91,7 +91,7 @@ class Data_Loader(data.Dataset):
             img_shape = original_img.shape
             # img = cv2.resize(original_img, dsize=(1280, 720)) # BIPED/MDBD
             img = cv2.resize(original_img, dsize=(480, 480)) # BRIED
-
+            # img = original_img
             if self.scale is not None:
                 for scl in self.scale:
                     img_scale = cv2.resize(img, None, fx=scl, fy=scl, interpolation=cv2.INTER_LINEAR)
@@ -106,7 +106,7 @@ class Data_Loader(data.Dataset):
             if lb.ndim == 3:
                 lb = np.squeeze(lb[:, :, 0])
             assert lb.ndim == 2
-            lb = cv2.resize(lb, (256, 256), interpolation=cv2.INTER_LINEAR)
+            # lb = cv2.resize(lb, (256, 256), interpolation=cv2.INTER_LINEAR)
             lb = lb[np.newaxis, :, :]
             lb[lb == 0] = 0
             lb[np.logical_and(lb > 0, lb < 64)] = 2

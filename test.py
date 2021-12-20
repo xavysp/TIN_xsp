@@ -35,7 +35,7 @@ parser.add_argument('--model', type=str, default='tin',
 parser.add_argument('--eta', type=float, default=0.3,
         help='threshold to determine the ground truth (the eta parameter in the paper)')
 
-parser.add_argument('--chckpnt', type=str, default='weight-3.pth',
+parser.add_argument('--chckpnt', type=str, default='weight-0.01-iter-60.pth',
         help='name of checkpoint') # check later
 
 
@@ -90,11 +90,11 @@ def main(args):
             file_name = os.path.basename(file_name[0])
             filename,_= os.path.splitext(file_name)
             h,w,c = img_shape
-            h = h.numpy()
-            w = w.numpy()
+            h = h.numpy()[0]
+            w = w.numpy()[0]
             out = model(img)
             fuse = out[-1].squeeze().detach().cpu().numpy()
-
+            # print('w', w[0],'h',h[0])
             fuse = cv2.resize(fuse, (w, h), interpolation=cv2.INTER_LINEAR)
 
             result = Image.fromarray(255-(fuse * 255).astype(np.uint8))
