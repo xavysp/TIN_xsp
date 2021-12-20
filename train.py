@@ -67,15 +67,21 @@ def batch_bce_loss(prediction, label):
         prediction = a(prediction)
     label = label.long()
     mask = label.float()
+    # b, c, h, w = mask.shape
     weight = torch.zeros_like(mask)
     num_positive = torch.sum((mask == 1).float(),dim=[1,2,3], keepdim=True).float()
     num_negative = torch.sum((mask == 0).float(),dim=[1,2,3], keepdim=True).float()
+    # num_negative = c*h*w-num_positive
+
+    # weight[label==1]= 1.0 * num_negative / (num_positive + num_negative)
+    # weight[label==0]= 1.1 * num_positive / (num_positive + num_negative)
+    # weight[label==2]= 0.
 
     weight.masked_scatter_(label==1,
-                           torch.ones_like(label)*(1.0 * num_negative) / (num_positive + num_negative))
+                           torch.ones_like(label)*(1.0 * num_negative/ (num_positive + num_negative)))
     weight.masked_scatter_(label==0,
-        torch.ones_like(label)*(1.1 * num_positive) / (num_positive + num_negative))
-    weight.masked_scatter_(label == 2,torch.ones_like(label) *0.)
+        torch.ones_like(label)*(1.1 * num_positive / (num_positive + num_negative)))
+    weight[label==2]== 0.
 
     cost = torch.nn.functional.binary_cross_entropy(
         prediction.float(), label.float(), weight=mask, reduce=False)
