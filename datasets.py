@@ -37,7 +37,7 @@ class Data_Loader(data.Dataset):
             self.filelist = os.listdir("data")
         else:
             self.filelist =[]
-            if data_name in ["BIPED", 'BRIND','MDBD']:
+            if data_name in ["BIPED", 'BRIND']:
                 with open(list_file) as f:
                     files = json.load(f)
                 for pair in files:

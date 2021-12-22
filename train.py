@@ -97,11 +97,11 @@ parser.add_argument('--savedir', type=str, default='results',
         help='path to save result and checkpoint')
 parser.add_argument('--datadir', type=str, default=dataset_base_dir,
         help='dir to the dataset')
-parser.add_argument('--test_data', type=str, default='BIPED',
+parser.add_argument('--test_data', type=str, default='BRIND',
         help='test data')
-parser.add_argument('--train_data', type=str, default='BIPED',
+parser.add_argument('--train_data', type=str, default='BRIND',
         help='data settings for BSDS, Multicue and NYUD datasets')
-parser.add_argument('--train_list', type=str, default='train_pair.txt',
+parser.add_argument('--train_list', type=str, default='train_pair2.lst',
         help='training data list')
 parser.add_argument('--test_list', type=str, default='test_pair.lst',
         help='testing data list')

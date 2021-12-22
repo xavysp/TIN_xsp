@@ -21,9 +21,9 @@ parser.add_argument('--savedir', type=str, default='results',
         help='path to save result and checkpoint')
 parser.add_argument('--datadir', type=str, default=dataset_base_dir,
         help='dir to the dataset')
-parser.add_argument('--test_data', type=str, default='BRIND',
+parser.add_argument('--test_data', type=str, default='BIPED',
         help='test data')
-parser.add_argument('--train_data', type=str, default='BIPED',
+parser.add_argument('--train_data', type=str, default='MDBD',
         help='data settings for BSDS, Multicue and NYUD datasets')
 parser.add_argument('--train_list', type=str, default='train_pair.lst',
         help='training data list')
@@ -35,7 +35,7 @@ parser.add_argument('--model', type=str, default='tin',
 parser.add_argument('--eta', type=float, default=0.3,
         help='threshold to determine the ground truth (the eta parameter in the paper)')
 
-parser.add_argument('--chckpnt', type=str, default='weight-0.01-iter-60.pth',
+parser.add_argument('--chckpnt', type=str, default='weight-0.01-iter-20.pth',
         help='name of checkpoint') # check later
 
 
