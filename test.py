@@ -35,7 +35,7 @@ parser.add_argument('--model', type=str, default='tin',
 parser.add_argument('--eta', type=float, default=0.3,
         help='threshold to determine the ground truth (the eta parameter in the paper)')
 
-parser.add_argument('--chckpnt', type=str, default='weight-0.01-iter-60.pth',
+parser.add_argument('--chckpnt', type=str, default='weight-0.01-iter-20.pth',
         help='name of checkpoint') # check later
 
 
