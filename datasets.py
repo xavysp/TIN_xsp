@@ -56,7 +56,12 @@ class Data_Loader(data.Dataset):
                 for pair in pairs:
                     tmp_img = pair[0]
                     tmp_gt = pair[1]
-                    self.filelist.append(
+                    if data_name =="CITYSCAPES":
+                        self.filelist.append(
+                            (self.root+tmp_img,
+                             self.root+tmp_gt,))
+                    else:
+                        self.filelist.append(
                         (os.path.join(self.root, tmp_img),
                          os.path.join(self.root, tmp_gt),))
 

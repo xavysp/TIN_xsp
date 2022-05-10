@@ -21,9 +21,9 @@ parser.add_argument('--savedir', type=str, default='results',
         help='path to save result and checkpoint')
 parser.add_argument('--datadir', type=str, default=dataset_base_dir,
         help='dir to the dataset')
-parser.add_argument('--test_data', type=str, default='BIPED',
+parser.add_argument('--test_data', type=str, default='CID',
         help='test data')
-parser.add_argument('--train_data', type=str, default='MDBD',
+parser.add_argument('--train_data', type=str, default='BIPED',
         help='data settings for BSDS, Multicue and NYUD datasets')
 parser.add_argument('--train_list', type=str, default='train_pair.lst',
         help='training data list')
@@ -83,6 +83,7 @@ def main(args):
     os.makedirs(save_dir,exist_ok=True)
     print("Data will be saved in> ",save_dir)
     with torch.no_grad():
+        total_duration = []
         for batch_id, sample_batched in enumerate(test_loader):
             img = sample_batched['images'].to(device)
             img_shape = sample_batched['image_shape']
@@ -92,7 +93,16 @@ def main(args):
             h,w,c = img_shape
             h = h.numpy()[0]
             w = w.numpy()[0]
+
+            end = time.perf_counter()
+            if device.type == 'cuda':
+                torch.cuda.synchronize()
             out = model(img)
+            if device.type == 'cuda':
+                torch.cuda.synchronize()
+            tmp_duration = time.perf_counter() - end
+            total_duration.append(tmp_duration)
+
             fuse = out[-1].squeeze().detach().cpu().numpy()
             # print('w', w[0],'h',h[0])
             fuse = cv2.resize(fuse, (w, h), interpolation=cv2.INTER_LINEAR)
@@ -102,6 +112,11 @@ def main(args):
             result.save(os.path.join(save_dir,filename))
             print(batch_id, ": ",img_shape,os.path.join(save_dir,filename))
     print('finished.')
+    total_duration = np.sum(np.array(total_duration))
+    print("******** Testing finished in", len(test_loader), "images. *****")
+    print("FPS: %f.4" % (len(test_loader)/total_duration))
+
+
 
 if __name__ == '__main__':
     main(args=args)
