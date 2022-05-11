@@ -21,7 +21,7 @@ parser.add_argument('--savedir', type=str, default='results',
         help='path to save result and checkpoint')
 parser.add_argument('--datadir', type=str, default=dataset_base_dir,
         help='dir to the dataset')
-parser.add_argument('--test_data', type=str, default='CID',
+parser.add_argument('--test_data', type=str, default='BSDS',
         help='test data')
 parser.add_argument('--train_data', type=str, default='BIPED',
         help='data settings for BSDS, Multicue and NYUD datasets')
@@ -94,6 +94,7 @@ def main(args):
             h = h.numpy()[0]
             w = w.numpy()[0]
 
+            print("Image size ", img.shape)
             end = time.perf_counter()
             if device.type == 'cuda':
                 torch.cuda.synchronize()

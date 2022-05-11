@@ -95,8 +95,8 @@ class Data_Loader(data.Dataset):
             original_img = np.array(cv2.imread(join(self.root, img_file)), dtype=np.float32)
             img_shape = original_img.shape
             # img = cv2.resize(original_img, dsize=(1280, 720)) # BIPED/MDBD
-            img = cv2.resize(original_img, dsize=(480, 480)) # BRIED
-            # img = original_img
+            # img = cv2.resize(original_img, dsize=(480, 480)) # BRIED
+            img = original_img
             if self.scale is not None:
                 for scl in self.scale:
                     img_scale = cv2.resize(img, None, fx=scl, fy=scl, interpolation=cv2.INTER_LINEAR)
@@ -104,7 +104,9 @@ class Data_Loader(data.Dataset):
                     data_name.append(img_file)
                 return data, img, data_name
 
-            img = prepare_image_cv2(img)
+            # img = prepare_image_cv2(img)
+            img = cv2.resize(img, dsize=(496, 380), interpolation=cv2.INTER_LINEAR)
+            img = np.transpose(img, (2, 0, 1))  # (H x W x C) to (C x H x W)
 
             lb = np.array(Image.open(join(self.root, lb_file)), dtype=np.float32)
 
